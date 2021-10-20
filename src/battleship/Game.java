@@ -14,11 +14,11 @@ public class Game {
 
 
 class Field {
-    private int xSize;
-    private int ySize;
-    private int carriersNum, battleshipsNum, cruisersNum, destroyersNum, submarinesNum;
+    private final int xSize;
+    private final int ySize;
+    private final int carriersNum, battleshipsNum, cruisersNum, destroyersNum, submarinesNum;
     public Ship[][] field;
-    private Random rd = new Random();
+    private final Random rd = new Random();
 
     public Field(int xSize, int ySize, int carriersNum, int battleshipsNum, int cruisersNum, int destroyersNum, int submarinesNum) {
         this.carriersNum = carriersNum;
@@ -31,35 +31,81 @@ class Field {
         field = new Ship[xSize][ySize];
     }
 
-    public boolean SetShips() {
-        for (int i = 0; i < 10000; i++) {
-            int totalShipsNum = carriersNum + battleshipsNum + cruisersNum + destroyersNum + submarinesNum;
-
-
-            for (int j = 0; i < carriersNum; i++) {
-                boolean vertical = rd.nextBoolean();
-                if (vertical) {
-                    int xPos = rd.nextInt(xSize);
-                    int yPos = rd.nextInt(ySize - 5);
-                }
-                else {
-                    int xPos = rd.nextInt(xSize - 5);
-                    int yPos = rd.nextInt(ySize);
-                }
-
-
+    public void SetShips() {
+        for (int i = 0; i < carriersNum; i++) {
+            if (!SetShip(5)) {
+                throw new IllegalArgumentException("Не удалось сгенерировать заданное количество авианосцев");
             }
+        }
+        for (int i = 0; i < battleshipsNum; i++) {
+            if (!SetShip(4)) {
+                throw new IllegalArgumentException("Не удалось сгенерировать заданное количество линкоров");
+            }
+        }
+        for (int i = 0; i < cruisersNum; i++) {
+            if (!SetShip(3)) {
+                throw new IllegalArgumentException("Не удалось сгенерировать заданное количество крейсеров");
+            }
+        }
+        for (int i = 0; i < destroyersNum; i++) {
+            if (!SetShip(2)) {
+                throw new IllegalArgumentException("Не удалось сгенерировать заданное количество уничтожетелей(What?)");
+            }
+        }
+        for (int i = 0; i < submarinesNum; i++) {
+            if (!SetShip(1)) {
+                throw new IllegalArgumentException("Не удалось сгенерировать заданное количество подлодок");
+            }
+        }
+    }
 
-
-            if (totalShipsNum == 0) {
+    boolean SetShip(int size) {
+        Ship ship;
+        switch (size) {
+            case 5:
+                ship = new Carrier(5);
+                break;
+            case 4:
+                ship = new Battleship(4);
+                break;
+            case 3:
+                ship = new Cruiser(3);
+                break;
+            case 2:
+                ship = new Destroyer(2);
+                break;
+            case 1:
+                ship = new Submarine(1);
+                break;
+            default:
+                ship = new Ship(0);
+        }
+        int attemps = 10000;
+        for (int k = 0; k < attemps; k++) {
+            boolean vertical = rd.nextBoolean();
+            int xPos, yPos;
+            if (vertical) {
+                xPos = rd.nextInt(xSize);
+                yPos = rd.nextInt(ySize - size);
+            } else {
+                xPos = rd.nextInt(xSize - size);
+                yPos = rd.nextInt(ySize);
+            }
+            if (canSetShip(xPos, yPos, size, vertical)) {
+                if (vertical) {
+                    for (int l = yPos; l < yPos + size; l++) {
+                        field[xPos][l] = ship;
+                    }
+                }
                 break;
             }
-            if (i == 9999) {
+            if (k == attemps - 1) {
                 return false;
             }
         }
-        return true; // TODO: переделать.
+        return true;
     }
+
 
     public boolean canSetShip(int xPos, int yPos, int size, boolean vertical) {
         int minX = Math.max(0, xPos - 1);
@@ -81,6 +127,7 @@ class Field {
 
 class Ship {
     public int hp;
+
     public Ship(int hp) {
         this.hp = hp;
     }
